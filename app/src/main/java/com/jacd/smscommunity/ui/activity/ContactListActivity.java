@@ -233,13 +233,6 @@ public class ContactListActivity extends AppCompatActivity {
                     file = new File(rute);
                 }
 
-                try {
-                    String rr = Environment.getExternalStorageDirectory() + "/" + uri.getLastPathSegment();
-                    File f = new File(rr);
-                    SendUtils.FilesTask.xxxxx(f);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
                 listContact1 = SendUtils.FilesTask.getContactForExcel(mContext, nameFile, file, uri);
 
                 List<Items> itemsList = new ArrayList<>();
@@ -278,12 +271,16 @@ public class ContactListActivity extends AppCompatActivity {
                 if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N){
                     file = new File(path);
                 }else {
+                    String a = path1.contains(":")?path1.split(":")[1]:path1;
+                    String r = Environment.getExternalStorageDirectory() + "/";
+                    rute = r+a;
+                    Log.w(TAG, rute);
                     file = new File(rute);
                 }
 
                 String nameFile = ""+path.split("/")[path.split("/").length-1];
                 nameFile = nameFile.contains(":")?path1:nameFile;
-                Log.w(TAG, rute);
+                //Log.w(TAG, rute);
 
                 listContact1 = SendUtils.FilesTask.getListVCF(file, nameFile);
 

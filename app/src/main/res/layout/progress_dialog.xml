@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center">
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:padding="25dp"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:background="@drawable/bg_round">
+
+        <com.airbnb.lottie.LottieAnimationView
+            android:id="@+id/lottie_progress_animate"
+            android:layout_gravity="center"
+            android:layout_width="150dp"
+            android:layout_height="150dp"
+            app:lottie_fileName="loading_paperplane.json"
+            app:lottie_autoPlay="true"
+            app:lottie_loop="true"
+            />
+
+        <TextView
+            android:id="@+id/tv_progress_message"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Espere por favor..."
+            android:textSize="18sp"
+            android:textStyle="bold|italic"/>
+
+    </LinearLayout>
+    
+</RelativeLayout>

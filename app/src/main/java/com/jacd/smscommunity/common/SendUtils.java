@@ -118,6 +118,29 @@ public abstract class SendUtils {
             }catch(Exception e){e.printStackTrace();}
         }
 
+        public static List<ContactsModel> getListVCF(File file, String nameFile){
+            List<ContactsModel> list = new ArrayList<>();
+            String name="N/A";
+            String phone = "";
+            try{
+                List<VCard> vcards = Ezvcard.parse(file).all();
+                for (VCard vcard : vcards){
+                     name = vcard.getFormattedName().getValue();
+                    System.out.println("Telephone numbers:");
+                    for (Telephone tel : vcard.getTelephoneNumbers()) {
+                        phone = tel.getText();
+                    }
+                    ContactsModel cm = new ContactsModel();
+                    cm.setName(name.isEmpty()||name.equals("null")?"N/A":name);
+                    cm.setNumber(phone);
+                    cm.setTopic(nameFile);
+                    list.add(cm);
+
+                }
+            }catch(Exception e){e.printStackTrace();}
+            return list;
+        }
+
         public static void xxxxx(Context context, String filePath){
             File vcardFile = new File(filePath);
             VCardReader reader = null;

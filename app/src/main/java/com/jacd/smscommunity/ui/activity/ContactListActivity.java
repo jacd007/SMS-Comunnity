@@ -20,6 +20,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
@@ -114,7 +115,18 @@ public class ContactListActivity extends AppCompatActivity {
                 ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, 5);
             } else {
                 try {
-                    goIntentStorage();
+                    goIntentStorageXLS();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    Toast.makeText(mContext, "Error al abrir la galeria...", Toast.LENGTH_SHORT).show();
+                }
+            }
+        }else if (reqCode == 2){
+            if (ContextCompat.checkSelfPermission(mContext, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, 6);
+            } else {
+                try {
+                    goIntentStorageVCF();
                 } catch (Exception e) {
                     e.printStackTrace();
                     Toast.makeText(mContext, "Error al abrir la galeria...", Toast.LENGTH_SHORT).show();
@@ -124,14 +136,14 @@ public class ContactListActivity extends AppCompatActivity {
 
     }
 
-    private void goIntentStorage() {
+    private void goIntentStorageXLS() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N){
             Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
             intent.setType("application/x-excel");
             startActivityForResult(intent, mREQUEST_EXCEL);
         }else{
             String types = "application/vnd.ms-excel";
-            String[] mimetypes = {"application/x-excel", "application/vnd.ms-excel","text/x-vcard"};
+            String[] mimetypes = {"application/x-excel", "application/vnd.ms-excel"};
             //Intent intent = new Intent();
             Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
             intent.addCategory(Intent.CATEGORY_OPENABLE);
@@ -149,13 +161,35 @@ public class ContactListActivity extends AppCompatActivity {
 
     }
 
+    private void goIntentStorageVCF() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N){
+            Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+            intent.setType("text/x-vcard");
+            startActivityForResult(intent, mREQUEST_VCARD);
+        }else{
+            String[] mimetypes = {"text/x-vcard"};
+            Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+            intent.addCategory(Intent.CATEGORY_OPENABLE);
+            intent.setType("*/*");
+            intent.putExtra(Intent.EXTRA_MIME_TYPES, mimetypes);
+            startActivityForResult(intent, mREQUEST_VCARD);
+        }
+
+    }
+
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == 5) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 try {
-                   goIntentStorage();
+                    switch (requestCode) {
+                        case 5:
+                            goIntentStorageXLS();
+                            break;
+                        case 6:
+                            goIntentStorageVCF();
+                            break;
+                    }
                 } catch (Exception e) {
                     e.printStackTrace();
                     Toast.makeText(mContext, "Error en el permiso de almacenamiento...", Toast.LENGTH_SHORT).show();
@@ -163,7 +197,7 @@ public class ContactListActivity extends AppCompatActivity {
             } else {
                 Toast.makeText(mContext, "Permiso de lectura de almacenamiento denegado", Toast.LENGTH_SHORT).show();
             }
-        }
+
 
     }
 
@@ -230,6 +264,48 @@ public class ContactListActivity extends AppCompatActivity {
                 e.printStackTrace();
             }
         }
+        else if(resultCode == Activity.RESULT_OK && requestCode == mREQUEST_VCARD){
+            try {
+                List<ContactsModel> listContact1 = new ArrayList<>();
+                String rute="";
+                File file;
+                Uri uri = data.getData();
+                String path = data.getData().getPath();
+                String path1 = data.getData().getLastPathSegment();
+
+                rute = Environment.getExternalStorageDirectory() + "/" + path1;
+
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N){
+                    file = new File(path);
+                }else {
+                    file = new File(rute);
+                }
+
+                String nameFile = ""+path.split("/")[path.split("/").length-1];
+                nameFile = nameFile.contains(":")?path1:nameFile;
+                Log.w(TAG, rute);
+
+                listContact1 = SendUtils.FilesTask.getListVCF(file, nameFile);
+
+                List<Items> itemsList = new ArrayList<>();
+                int id = smsDB.getListContact().size()+1;
+
+                ListContactModel item = new ListContactModel(id, "" + nameFile, "" + path
+                        ,""+ Utils.ramdomString(8), listContact1);
+
+                itemsList.add(item);
+                if (listContact1.size()!=0){
+                    List<ListContactModel> list = new ArrayList<>();
+                    list.add(item);
+                    listContact.add(item);
+                    print1(itemsList);
+                    smsDB.setListContact(list);
+                }
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
         if(resultCode == Activity.RESULT_OK && requestCode == 4000){
             dialog = Utils.customDialogWait(mContext);
             dialog.show();
@@ -238,5 +314,9 @@ public class ContactListActivity extends AppCompatActivity {
                     dialog.dismiss();
             },3000);
         }
+    }
+
+    public void addDataVCard(View view) {
+        loadStorage(2);
     }
 }

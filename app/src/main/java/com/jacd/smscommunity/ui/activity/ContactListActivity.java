@@ -264,25 +264,37 @@ public class ContactListActivity extends AppCompatActivity {
                 File file;
                 Uri uri = data.getData();
                 String path = data.getData().getPath();
-                String path1 = data.getData().getLastPathSegment();
+                String nameFile = ""+path.split("/")[path.split("/").length-1];
 
+                String path1 = path.contains(":")?path.split(":")[1]:path;
                 rute = Environment.getExternalStorageDirectory() + "/" + path1;
+                nameFile = nameFile.contains(":")?path1:nameFile;
+
+
 
                 if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N){
                     file = new File(path);
                 }else {
-                    String a = path1.contains(":")?path1.split(":")[1]:path1;
-                    String r = Environment.getExternalStorageDirectory() + "/";
-                    rute = r+a;
-                    Log.w(TAG, rute);
                     file = new File(rute);
                 }
 
-                String nameFile = ""+path.split("/")[path.split("/").length-1];
-                nameFile = nameFile.contains(":")?path1:nameFile;
-                //Log.w(TAG, rute);
+                if (file.exists()){
+                    listContact1 = SendUtils.FilesTask.getListVCF(file, nameFile);
+                }else{
+                    Log.e(TAG, "r: "+uri);
+                   rute = uri.getLastPathSegment();
+                   rute = "/storage/" + File.separator + rute.replace(":",File.separator);
+                    Log.e(TAG, "r: "+rute);
+                    file = new File(rute);
+                    if (file.exists()){
+                        listContact1 = SendUtils.FilesTask.getListVCF(file, nameFile);
+                    }else{
+                        Toast.makeText(mContext, "No se pudo cargar el archivo", Toast.LENGTH_SHORT).show();
+                    }
+                }
 
-                listContact1 = SendUtils.FilesTask.getListVCF(file, nameFile);
+
+
 
                 List<Items> itemsList = new ArrayList<>();
                 int id = smsDB.getListContact().size()+1;
